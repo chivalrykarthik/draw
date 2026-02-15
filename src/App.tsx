@@ -199,7 +199,6 @@ export default function App() {
     resetView();
   }, [resetView]);
 
-  // Load template
   const loadTemplate = useCallback((templateId: string) => {
     const t = templates.find(t => t.id === templateId);
     if (t) {
