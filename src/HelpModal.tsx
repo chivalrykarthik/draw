@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTheme } from './ThemeContext';
 import { GENERAL_PROPERTIES, STYLE_PROPERTIES, SHAPES_LIST, CHEAT_SHEETS } from './helpData';
 
