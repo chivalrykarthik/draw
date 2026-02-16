@@ -532,35 +532,57 @@ log_error -> return_500
 ];
 
 export const DEFAULT_CODE = `# Welcome to D2 Draw
-# Start typing your diagram code here
+# Use direction to control flow: right, left, up, down
+direction: right
 
-# Simple example:
+# You can control size with width and height
 client: {
   label: Client App
   shape: rectangle
+  width: 160
+  height: 70
   style.fill: "#312e81"
   style.stroke: "#818cf8"
   style.font-color: "#e0e7ff"
+  style.font-size: 14
 }
 
 server: {
   label: API Server
   shape: rectangle
+  width: 160
+  height: 70
   style.fill: "#164e63"
   style.stroke: "#22d3ee"
   style.font-color: "#cffafe"
+  style.font-size: 14
 }
 
 database: {
   label: Database
   shape: cylinder
+  width: 140
+  height: 80
   style.fill: "#064e3b"
   style.stroke: "#34d399"
   style.font-color: "#d1fae5"
+  style.font-size: 14
+}
+
+cache: {
+  label: Redis Cache
+  shape: cylinder
+  width: 140
+  height: 80
+  style.fill: "#78350f"
+  style.stroke: "#fbbf24"
+  style.font-color: "#fef3c7"
+  style.font-size: 14
 }
 
 client -> server: HTTP Request
 server -> database: Query
+server -> cache: Cache Check
 database -> server: Result
 server -> client: JSON Response
 `;
