@@ -5,6 +5,7 @@ import type { DiagramType } from './templates';
 import { templates, DEFAULT_CODE, DIAGRAM_TYPE_META } from './templates';
 import { downloadSVG, downloadPNG } from './exportUtils';
 import { useTheme } from './ThemeContext';
+import { HelpModal } from './HelpModal';
 
 // ─── Icon Components ───
 function FlowIcon({ className = '' }: { className?: string }) {
@@ -98,6 +99,7 @@ const TYPE_ICONS: Record<DiagramType, typeof FlowIcon> = {
 
 export default function App() {
   const { isDark, toggleTheme } = useTheme();
+  const [isHelpOpen, setHelpOpen] = useState(false);
   const [code, setCode] = useState(DEFAULT_CODE);
   const [activeType, setActiveType] = useState<DiagramType>('flow');
   const [templateDropdownOpen, setTemplateDropdownOpen] = useState(false);
@@ -289,6 +291,17 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* Help Button */}
+          <button
+            id="help-btn"
+            onClick={() => setHelpOpen(true)}
+            className="p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/10 mr-1"
+            title="Quick Help & Cheat Sheet"
+            style={{ color: 'var(--theme-text-muted)' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+          </button>
+
           {/* Theme Toggle */}
           <button
             id="theme-toggle"
@@ -623,6 +636,9 @@ export default function App() {
           </span>
         </div>
       </footer>
+
+      {/* Help Modal */}
+      <HelpModal isOpen={isHelpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

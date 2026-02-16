@@ -529,6 +529,168 @@ retry -> log_error: No {
 log_error -> return_500
 `,
   },
+  {
+    id: 'shapes-styles',
+    name: 'Shapes & Styles',
+    type: 'flow',
+    description: 'Showcase of shapes, tooltips, links, and styling options',
+    code: `# Shapes & Styles
+direction: right
+
+styled_box: {
+  label: Styled Box
+  tooltip: I have a tooltip!
+  link: https://d2lang.com
+  style: {
+    fill: "#f472b6"
+    stroke: "#831843"
+    stroke-width: 4
+    shadow: true
+    border-radius: 8
+    font-size: 16
+  }
+}
+
+shapes: {
+  style: {
+      fill: transparent
+      stroke: transparent
+  }
+  
+  rect: { shape: rectangle }
+  sq: { shape: square }
+  page: { shape: page }
+  para: { shape: parallelogram }
+  doc: { shape: document }
+  cyl: { shape: cylinder }
+  q: { shape: queue }
+  pkg: { shape: package }
+  step: { shape: step }
+  call: { shape: callout }
+  actor: { shape: person }
+  dia: { shape: diamond }
+  oval: { shape: oval }
+  circ: { shape: circle }
+  hex: { shape: hexagon }
+  cloud: { shape: cloud }
+}
+
+styled_box -> shapes.rect: Solid Arrow
+styled_box -> shapes.sq: Dashed {style.stroke-dash: 3}
+styled_box -> shapes.page: Colored {style.stroke: "#22d3ee"}
+`,
+  },
+  {
+    id: 'uml-class',
+    name: 'UML Class Diagram',
+    type: 'architecture',
+    description: 'UML Class diagram with fields, methods, inheritance, and cardinality',
+    code: `# UML Class Diagram
+direction: right
+
+User: {
+  shape: class
+  # Fields
+  +id: UUID
+  +email: String
+  -password_hash: String
+  
+  # Methods
+  +login(): void
+  +register(): void
+}
+
+Post: {
+  shape: class
+  +id: UUID
+  +title: String
+  +content: Text
+  +authorId: UUID
+  
+  +publish(): void
+}
+
+# Inheritance
+Admin -> User: inherits
+
+# Relationships
+User -> Post: 1..* (creates)
+`,
+  },
+  {
+    id: 'er-diagram',
+    name: 'ER Diagram',
+    type: 'architecture',
+    description: 'Entity Relationship diagram with sql_table shape, types, and constraints',
+    code: `# ER Diagram
+direction: right
+
+users: {
+  shape: sql_table
+  id: int {constraint: primary_key}
+  username: varchar(50)
+  email: varchar(100) {constraint: unique}
+  created_at: timestamp
+}
+
+orders: {
+  shape: sql_table
+  id: int {constraint: primary_key}
+  user_id: int {constraint: foreign_key}
+  total: decimal(10, 2)
+  status: varchar(20)
+}
+
+# Relationships
+users -> orders: has many
+`,
+  },
+  {
+    id: 'aws-architecture',
+    name: 'AWS Architecture',
+    type: 'architecture',
+    description: 'Cloud architecture using nested containers and style customizations',
+    code: `# AWS Architecture
+direction: right
+
+internet: {
+  shape: cloud
+}
+
+vpc: {
+  label: VPC
+  style: {
+      stroke: "#fbbf24"
+      fill: transparent
+      stroke-dash: 3
+  }
+  
+  lb: {
+    label: Load Balancer
+    shape: rectangle
+    style.fill: "#1e293b"
+  }
+  
+  app_cluster: {
+    label: App Cluster
+    style.fill: transparent
+    
+    server1: { shape: square; style.fill: "#1e293b" }
+    server2: { shape: square; style.fill: "#1e293b" }
+  }
+  
+  db: {
+    label: RDS Primary
+    shape: cylinder
+    style.fill: "#1e293b"
+  }
+}
+
+internet -> vpc.lb: HTTPS
+vpc.lb -> vpc.app_cluster: Traffic
+vpc.app_cluster -> vpc.db: SQL
+`,
+  },
 ];
 
 export const DEFAULT_CODE = `# Welcome to D2 Draw
