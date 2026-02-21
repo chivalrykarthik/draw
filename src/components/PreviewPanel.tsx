@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { ZoomInIcon, ZoomOutIcon, FitIcon, HexagonIcon } from '../icons/Icons';
 
 interface PreviewPanelProps {
@@ -35,6 +35,20 @@ export function PreviewPanel({
     onWheel,
 }: PreviewPanelProps) {
     const previewRef = useRef<HTMLDivElement>(null);
+
+    // Attach wheel handler natively with { passive: false } so preventDefault()
+    // actually blocks the browser's default Ctrl+Scroll zoom behavior.
+    const wheelHandler = useCallback((e: WheelEvent) => {
+        e.preventDefault();
+        onWheel(e as unknown as React.WheelEvent);
+    }, [onWheel]);
+
+    useEffect(() => {
+        const el = previewRef.current;
+        if (!el) return;
+        el.addEventListener('wheel', wheelHandler, { passive: false });
+        return () => el.removeEventListener('wheel', wheelHandler);
+    }, [wheelHandler]);
 
     return (
         <div className="flex-1 flex flex-col min-h-0 min-w-0">
@@ -99,7 +113,7 @@ export function PreviewPanel({
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
                 onMouseLeave={onMouseUp}
-                onWheel={onWheel}
+
                 style={{ cursor: isPanning ? 'grabbing' : 'grab', background: 'var(--theme-bg-alt)' }}
             >
                 {svg ? (

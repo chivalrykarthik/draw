@@ -18,7 +18,7 @@ export default function App() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [activeType, setActiveType] = useState<DiagramType>('flow');
   const [layoutEngine, setLayoutEngine] = useState<LayoutEngine>('elk');
-  const [editorWidth, setEditorWidth] = useState(50);
+  const [editorWidth, setEditorWidth] = useState(20);
   const [isHelpOpen, setHelpOpen] = useState(false);
 
   // ─── Hooks ───
