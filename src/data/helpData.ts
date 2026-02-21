@@ -1,14 +1,4 @@
-export interface HelpItem {
-    name: string;
-    description: string;
-    example?: string;
-}
-
-export interface CheatSheetItem {
-    title: string;
-    description: string;
-    code: string;
-}
+import type { HelpItem, CheatSheetItem } from '../types';
 
 export const GENERAL_PROPERTIES: HelpItem[] = [
     { name: 'direction', description: 'Sets the layout direction of the diagram (right, left, up, down)', example: 'direction: right' },
@@ -78,7 +68,7 @@ orders: {
   id: int {constraint: primary_key}
   user_id: int {constraint: foreign_key}
 }
-users -> orders: has many`
+users -> orders: has many`,
     },
     {
         title: 'UML Class',
@@ -93,7 +83,7 @@ Admin: {
   shape: class
   +permissions: List<String>
 }
-Admin -> User: inherits`
+Admin -> User: inherits`,
     },
     {
         title: 'Connections',
@@ -104,7 +94,7 @@ a <-> b: Bidirectional
 a -> b: Dashed {
   style.stroke-dash: 3
   style.stroke: red
-}`
+}`,
     },
     {
         title: 'Containers',
@@ -117,6 +107,6 @@ a -> b: Dashed {
   api: { shape: rectangle }
   
   lb -> api: Traffic
-}`
-    }
+}`,
+    },
 ];

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useTheme } from './ThemeContext';
-import { GENERAL_PROPERTIES, STYLE_PROPERTIES, SHAPES_LIST, CHEAT_SHEETS } from './helpData';
+import { useTheme } from '../context/ThemeContext';
+import { CloseIcon } from '../icons/Icons';
+import { GENERAL_PROPERTIES, STYLE_PROPERTIES, SHAPES_LIST, CHEAT_SHEETS } from '../data/helpData';
 
 interface HelpModalProps {
     isOpen: boolean;
@@ -8,6 +9,13 @@ interface HelpModalProps {
 }
 
 type Tab = 'reference' | 'shapes' | 'styling' | 'cheatsheet';
+
+const TABS: { id: Tab; label: string }[] = [
+    { id: 'reference', label: 'General Properties' },
+    { id: 'styling', label: 'Styling' },
+    { id: 'shapes', label: 'Shapes' },
+    { id: 'cheatsheet', label: 'Cheat Sheet' },
+];
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
     const { isDark } = useTheme();
@@ -29,7 +37,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 style={{
                     background: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                     border: 'var(--theme-border)',
-                    color: 'var(--theme-text-primary)'
+                    color: 'var(--theme-text-primary)',
                 }}
             >
                 {/* Header */}
@@ -43,27 +51,22 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                         className="p-2 rounded-lg hover:bg-black/5 transition-colors"
                         style={{ color: 'var(--theme-text-muted)' }}
                     >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <CloseIcon />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex px-6 border-b" style={{ borderColor: 'var(--theme-border)', background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }}>
-                    {[
-                        { id: 'reference', label: 'General Properties' },
-                        { id: 'styling', label: 'Styling' },
-                        { id: 'shapes', label: 'Shapes' },
-                        { id: 'cheatsheet', label: 'Cheat Sheet' }
-                    ].map((tab) => (
+                <div
+                    className="flex px-6 border-b"
+                    style={{ borderColor: 'var(--theme-border)', background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }}
+                >
+                    {TABS.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as Tab)}
+                            onClick={() => setActiveTab(tab.id)}
                             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
-                                ? 'border-brand-500 text-brand-500'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                    ? 'border-brand-500 text-brand-500'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                                 }`}
                         >
                             {tab.label}
@@ -73,8 +76,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-
-                    {/* Reference Tab */}
                     {activeTab === 'reference' && (
                         <div className="space-y-6">
                             <div className="grid gap-4">
@@ -93,7 +94,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                         </div>
                     )}
 
-                    {/* Styling Tab */}
                     {activeTab === 'styling' && (
                         <div className="space-y-6">
                             <div className="grid gap-4">
@@ -112,7 +112,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                         </div>
                     )}
 
-                    {/* Shapes Tab */}
                     {activeTab === 'shapes' && (
                         <div>
                             <p className="text-sm mb-4 opacity-70">
@@ -133,7 +132,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                         </div>
                     )}
 
-                    {/* Cheat Sheet Tab */}
                     {activeTab === 'cheatsheet' && (
                         <div className="grid gap-6 md:grid-cols-2">
                             {CHEAT_SHEETS.map((sheet) => (

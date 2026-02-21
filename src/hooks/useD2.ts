@@ -1,13 +1,23 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { D2 } from '@terrastruct/d2';
+import type { LayoutEngine } from '../types';
 
 interface UseD2Result {
     svg: string;
     error: string | null;
     isCompiling: boolean;
-    compile: (code: string, isDark: boolean) => void;
+    compile: (code: string, isDark: boolean, layout?: LayoutEngine) => void;
 }
 
+const DEBOUNCE_MS = 400;
+const DARK_THEME_ID = 200;
+const LIGHT_THEME_ID = 0;
+const DEFAULT_LAYOUT: LayoutEngine = 'elk';
+
+/**
+ * Hook for compiling and rendering D2 diagrams via WASM.
+ * Handles initialization, debounced compilation, and request deduplication.
+ */
 export function useD2(): UseD2Result {
     const [svg, setSvg] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
@@ -16,10 +26,10 @@ export function useD2(): UseD2Result {
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const latestRequestRef = useRef<string>('');
 
+    // Initialize D2 WASM engine once
     useEffect(() => {
         try {
             d2Ref.current = new D2();
-            console.log('[D2] WASM engine initialized');
         } catch (e) {
             console.error('[D2] Failed to initialize:', e);
         }
@@ -28,8 +38,12 @@ export function useD2(): UseD2Result {
         };
     }, []);
 
-    const doCompile = useCallback(async (code: string, isDark: boolean, requestId: string) => {
-        console.log('[D2] doCompile called, d2Ref exists:', !!d2Ref.current, 'code length:', code.trim().length);
+    const doCompile = useCallback(async (
+        code: string,
+        isDark: boolean,
+        layout: LayoutEngine,
+        requestId: string,
+    ) => {
         if (!d2Ref.current || !code.trim()) {
             setSvg('');
             setError(null);
@@ -39,25 +53,26 @@ export function useD2(): UseD2Result {
 
         setIsCompiling(true);
         try {
-            console.log('[D2] Compiling...');
-            // Use simple string overload — layout defaults to dagre
-            const result = await d2Ref.current.compile(code);
-            console.log('[D2] Compiled successfully, rendering...');
-            // D2 theme IDs: 0 = default light, 200 = dark
+            const result = await d2Ref.current.compile({
+                fs: { 'input.d2': code },
+                inputPath: 'input.d2',
+                options: { layout },
+            });
+
             const svgOutput = await d2Ref.current.render(result.diagram, {
                 ...result.renderOptions,
-                themeID: isDark ? 200 : 0,
+                themeID: isDark ? DARK_THEME_ID : LIGHT_THEME_ID,
                 sketch: false,
                 pad: 60,
+                center: true,
                 noXMLTag: true,
             });
-            console.log('[D2] Rendered SVG, length:', svgOutput.length, 'start:', svgOutput.substring(0, 300));
+
             if (requestId === latestRequestRef.current) {
                 setSvg(svgOutput);
                 setError(null);
             }
         } catch (err: unknown) {
-            console.error('[D2] Compilation/render error:', err);
             if (requestId === latestRequestRef.current) {
                 const msg = err instanceof Error ? err.message : String(err);
                 setError(msg);
@@ -69,15 +84,21 @@ export function useD2(): UseD2Result {
         }
     }, []);
 
-    const compile = useCallback((code: string, isDark: boolean) => {
-        const requestId = `${code}::${isDark}`;
+    const compile = useCallback((
+        code: string,
+        isDark: boolean,
+        layout: LayoutEngine = DEFAULT_LAYOUT,
+    ) => {
+        const requestId = `${code}::${isDark}::${layout}`;
         latestRequestRef.current = requestId;
+
         if (timerRef.current) {
             clearTimeout(timerRef.current);
         }
+
         timerRef.current = setTimeout(() => {
-            doCompile(code, isDark, requestId);
-        }, 400);
+            doCompile(code, isDark, layout, requestId);
+        }, DEBOUNCE_MS);
     }, [doCompile]);
 
     return { svg, error, isCompiling, compile };

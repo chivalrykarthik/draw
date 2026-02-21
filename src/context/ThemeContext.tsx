@@ -9,6 +9,8 @@ interface ThemeContextValue {
     toggleTheme: () => void;
 }
 
+const STORAGE_KEY = 'd2-draw-theme';
+
 const ThemeContext = createContext<ThemeContextValue>({
     theme: 'dark',
     isDark: true,
@@ -17,10 +19,10 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 function getInitialTheme(): Theme {
     try {
-        const stored = localStorage.getItem('d2-draw-theme');
+        const stored = localStorage.getItem(STORAGE_KEY);
         if (stored === 'light' || stored === 'dark') return stored;
     } catch { /* noop */ }
-    // Respect system preference
+
     if (window.matchMedia?.('(prefers-color-scheme: light)').matches) {
         return 'light';
     }
@@ -37,7 +39,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         root.classList.add(theme);
         root.setAttribute('data-theme', theme);
         try {
-            localStorage.setItem('d2-draw-theme', theme);
+            localStorage.setItem(STORAGE_KEY, theme);
         } catch { /* noop */ }
     }, [theme]);
 

@@ -1,26 +1,18 @@
-export type DiagramType = 'flow' | 'sequence' | 'architecture';
+import type { DiagramType, DiagramTemplate, DiagramTypeMeta } from '../types';
 
-export interface DiagramTemplate {
-  id: string;
-  name: string;
-  type: DiagramType;
-  description: string;
-  code: string;
-}
-
-export const DIAGRAM_TYPE_META: Record<DiagramType, { label: string; icon: string; color: string }> = {
-  flow: { label: 'Flow Diagram', icon: '🔀', color: 'text-accent-cyan' },
-  sequence: { label: 'Sequence Diagram', icon: '🔄', color: 'text-accent-emerald' },
-  architecture: { label: 'Architecture Diagram', icon: '🏗️', color: 'text-accent-amber' },
+export const DIAGRAM_TYPE_META: Record<DiagramType, DiagramTypeMeta> = {
+    flow: { label: 'Flow Diagram', icon: '🔀', color: 'text-accent-cyan' },
+    sequence: { label: 'Sequence Diagram', icon: '🔄', color: 'text-accent-emerald' },
+    architecture: { label: 'Architecture Diagram', icon: '🏗️', color: 'text-accent-amber' },
 };
 
 export const templates: DiagramTemplate[] = [
-  {
-    id: 'microservices',
-    name: 'Microservices Architecture',
-    type: 'architecture',
-    description: 'A complex microservices system with API gateway, service mesh, and data stores',
-    code: `# Microservices Architecture
+    {
+        id: 'microservices',
+        name: 'Microservices Architecture',
+        type: 'architecture',
+        description: 'A complex microservices system with API gateway, service mesh, and data stores',
+        code: `# Microservices Architecture
 direction: right
 
 title: {
@@ -250,13 +242,13 @@ services -> monitoring.prometheus: Metrics {style.stroke-dash: 3}
 monitoring.prometheus -> monitoring.grafana: Visualize {style.stroke-dash: 3}
 services -> monitoring.jaeger: Traces {style.stroke-dash: 3}
 `,
-  },
-  {
-    id: 'auth-flow',
-    name: 'Auth Flow (Sequence)',
-    type: 'sequence',
-    description: 'A detailed OAuth 2.0 authentication flow with token refresh',
-    code: `# OAuth 2.0 Authentication Flow
+    },
+    {
+        id: 'auth-flow',
+        name: 'Auth Flow (Sequence)',
+        type: 'sequence',
+        description: 'A detailed OAuth 2.0 authentication flow with token refresh',
+        code: `# OAuth 2.0 Authentication Flow
 shape: sequence_diagram
 
 user: {
@@ -330,13 +322,13 @@ browser -> auth_server: Request token refresh
 auth_server -> auth_server: Validate refresh token
 auth_server -> browser: New tokens issued
 `,
-  },
-  {
-    id: 'logic-flowchart',
-    name: 'Logic Flowchart',
-    type: 'flow',
-    description: 'A decision-tree style logic flowchart for error handling',
-    code: `# Error Handling Logic Flowchart
+    },
+    {
+        id: 'logic-flowchart',
+        name: 'Logic Flowchart',
+        type: 'flow',
+        description: 'A decision-tree style logic flowchart for error handling',
+        code: `# Error Handling Logic Flowchart
 direction: down
 
 title: {
@@ -528,13 +520,13 @@ retry -> log_error: No {
 }
 log_error -> return_500
 `,
-  },
-  {
-    id: 'shapes-styles',
-    name: 'Shapes & Styles',
-    type: 'flow',
-    description: 'Showcase of shapes, tooltips, links, and styling options',
-    code: `# Shapes & Styles
+    },
+    {
+        id: 'shapes-styles',
+        name: 'Shapes & Styles',
+        type: 'flow',
+        description: 'Showcase of shapes, tooltips, links, and styling options',
+        code: `# Shapes & Styles
 direction: right
 
 styled_box: {
@@ -579,13 +571,13 @@ styled_box -> shapes.rect: Solid Arrow
 styled_box -> shapes.sq: Dashed {style.stroke-dash: 3}
 styled_box -> shapes.page: Colored {style.stroke: "#22d3ee"}
 `,
-  },
-  {
-    id: 'uml-class',
-    name: 'UML Class Diagram',
-    type: 'architecture',
-    description: 'UML Class diagram with fields, methods, inheritance, and cardinality',
-    code: `# UML Class Diagram
+    },
+    {
+        id: 'uml-class',
+        name: 'UML Class Diagram',
+        type: 'architecture',
+        description: 'UML Class diagram with fields, methods, inheritance, and cardinality',
+        code: `# UML Class Diagram
 direction: right
 
 User: {
@@ -616,13 +608,13 @@ Admin -> User: inherits
 # Relationships
 User -> Post: 1..* (creates)
 `,
-  },
-  {
-    id: 'er-diagram',
-    name: 'ER Diagram',
-    type: 'architecture',
-    description: 'Entity Relationship diagram with sql_table shape, types, and constraints',
-    code: `# ER Diagram
+    },
+    {
+        id: 'er-diagram',
+        name: 'ER Diagram',
+        type: 'architecture',
+        description: 'Entity Relationship diagram with sql_table shape, types, and constraints',
+        code: `# ER Diagram
 direction: right
 
 users: {
@@ -644,13 +636,13 @@ orders: {
 # Relationships
 users -> orders: has many
 `,
-  },
-  {
-    id: 'aws-architecture',
-    name: 'AWS Architecture',
-    type: 'architecture',
-    description: 'Cloud architecture using nested containers and style customizations',
-    code: `# AWS Architecture
+    },
+    {
+        id: 'aws-architecture',
+        name: 'AWS Architecture',
+        type: 'architecture',
+        description: 'Cloud architecture using nested containers and style customizations',
+        code: `# AWS Architecture
 direction: right
 
 internet: {
@@ -690,7 +682,7 @@ internet -> vpc.lb: HTTPS
 vpc.lb -> vpc.app_cluster: Traffic
 vpc.app_cluster -> vpc.db: SQL
 `,
-  },
+    },
 ];
 
 export const DEFAULT_CODE = `# Welcome to D2 Draw

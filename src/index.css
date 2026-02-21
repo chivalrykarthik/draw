@@ -49,7 +49,7 @@
   --theme-text-dimmed: rgba(51, 65, 85, 0.6);
   --theme-glass-bg: rgba(15, 23, 42, 0.6);
   --theme-glass-border: rgba(99, 102, 241, 0.1);
-  --theme-glass-dropdown-bg: rgba(30, 41, 59, 0.5);
+  --theme-glass-dropdown-bg: rgba(30, 41, 59, 1);
   --theme-glass-dropdown-border: rgba(99, 102, 241, 0.08);
   --theme-dots: rgba(99, 102, 241, 0.06);
   --theme-tabs-bg: rgba(15, 23, 42, 0.8);
@@ -83,7 +83,7 @@
   --theme-text-dimmed: rgba(148, 163, 184, 0.6);
   --theme-glass-bg: rgba(255, 255, 255, 0.7);
   --theme-glass-border: rgba(99, 102, 241, 0.12);
-  --theme-glass-dropdown-bg: rgba(255, 255, 255, 0.85);
+  --theme-glass-dropdown-bg: rgba(255, 255, 255, 1);
   --theme-glass-dropdown-border: rgba(99, 102, 241, 0.1);
   --theme-dots: rgba(99, 102, 241, 0.08);
   --theme-tabs-bg: rgba(241, 245, 249, 0.9);
@@ -205,6 +205,7 @@ header {
 .glass-light {
   background: var(--theme-glass-dropdown-bg);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--theme-glass-dropdown-border);
 }
 
