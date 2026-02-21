@@ -107,7 +107,7 @@ export default function App() {
           isPanning={panZoom.isPanning}
           onZoomIn={panZoom.zoomIn}
           onZoomOut={panZoom.zoomOut}
-          onResetView={panZoom.resetView}
+          onFitView={panZoom.fitToView}
           onMouseDown={panZoom.handleMouseDown}
           onMouseMove={panZoom.handleMouseMove}
           onMouseUp={panZoom.handleMouseUp}

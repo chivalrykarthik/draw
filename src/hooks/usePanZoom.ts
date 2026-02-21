@@ -11,16 +11,16 @@ interface UsePanZoomReturn extends PanZoomState {
     zoomIn: () => void;
     zoomOut: () => void;
     resetView: () => void;
+    fitToView: (containerW: number, containerH: number, contentW: number, contentH: number) => void;
     handleMouseDown: (e: React.MouseEvent) => void;
     handleMouseMove: (e: React.MouseEvent) => void;
     handleMouseUp: () => void;
     handleWheel: (e: React.WheelEvent) => void;
 }
-
-const ZOOM_STEP = 0.2;
-const ZOOM_MIN = 0.1;
-const ZOOM_MAX = 5;
-const WHEEL_ZOOM_STEP = 0.1;
+const ZOOM_FACTOR_BUTTON = 1.25;   // 25% per button click
+const ZOOM_FACTOR_WHEEL = 1.08;    // 8% per scroll tick — smooth and granular
+const ZOOM_MIN = 0.05;
+const ZOOM_MAX = 8;
 const PAN_DRAG_THRESHOLD = 4; // px — must drag this far before panning activates
 
 /**
@@ -48,17 +48,45 @@ export function usePanZoom(): UsePanZoomReturn {
     });
 
     const zoomIn = useCallback(() => {
-        setZoom(z => Math.min(ZOOM_MAX, z + ZOOM_STEP));
+        setZoom(z => Math.min(ZOOM_MAX, z * ZOOM_FACTOR_BUTTON));
     }, []);
 
     const zoomOut = useCallback(() => {
-        setZoom(z => Math.max(ZOOM_MIN, z - ZOOM_STEP));
+        setZoom(z => Math.max(ZOOM_MIN, z / ZOOM_FACTOR_BUTTON));
     }, []);
 
     const resetView = useCallback(() => {
         setZoom(1);
         setPan({ x: 0, y: 0 });
     }, []);
+
+    /**
+     * Fit the diagram to the container viewport.
+     * Calculates optimal zoom (capped at 1x) and centers the content.
+     */
+    const fitToView = useCallback((containerW: number, containerH: number, contentW: number, contentH: number) => {
+        if (contentW <= 0 || contentH <= 0 || containerW <= 0 || containerH <= 0) {
+            resetView();
+            return;
+        }
+
+        const padding = 32; // px padding on each side
+        const availW = containerW - padding * 2;
+        const availH = containerH - padding * 2;
+
+        // Calculate zoom to fit, but don't zoom beyond 1x (no upscaling small diagrams)
+        const fitZoom = Math.min(availW / contentW, availH / contentH, 1);
+        const clampedZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, fitZoom));
+
+        // Center the content within the container
+        const scaledW = contentW * clampedZoom;
+        const scaledH = contentH * clampedZoom;
+        const panX = (containerW - scaledW) / 2;
+        const panY = (containerH - scaledH) / 2;
+
+        setZoom(clampedZoom);
+        setPan({ x: panX, y: panY });
+    }, [resetView]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         if (e.button !== 0 && e.button !== 1) return;
@@ -104,27 +132,9 @@ export function usePanZoom(): UsePanZoomReturn {
         setIsPanning(false);
     }, []);
 
-    const handleWheel = useCallback((e: React.WheelEvent) => {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? -WHEEL_ZOOM_STEP : WHEEL_ZOOM_STEP;
-
-        // Zoom towards cursor position
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const cursorX = e.clientX - rect.left;
-        const cursorY = e.clientY - rect.top;
-
-        setZoom(prevZoom => {
-            const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, prevZoom + delta));
-            const scale = newZoom / prevZoom;
-
-            // Adjust pan so the point under cursor stays fixed
-            setPan(prevPan => ({
-                x: cursorX - scale * (cursorX - prevPan.x),
-                y: cursorY - scale * (cursorY - prevPan.y),
-            }));
-
-            return newZoom;
-        });
+    // Mouse wheel zoom disabled — use +/- buttons instead
+    const handleWheel = useCallback((_e: React.WheelEvent) => {
+        // Intentionally disabled
     }, []);
 
     return {
@@ -135,6 +145,7 @@ export function usePanZoom(): UsePanZoomReturn {
         zoomIn,
         zoomOut,
         resetView,
+        fitToView,
         handleMouseDown,
         handleMouseMove,
         handleMouseUp,

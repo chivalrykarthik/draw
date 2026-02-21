@@ -12,7 +12,7 @@ interface PreviewPanelProps {
     isPanning: boolean;
     onZoomIn: () => void;
     onZoomOut: () => void;
-    onResetView: () => void;
+    onFitView: (containerW: number, containerH: number, contentW: number, contentH: number) => void;
     onMouseDown: (e: React.MouseEvent) => void;
     onMouseMove: (e: React.MouseEvent) => void;
     onMouseUp: () => void;
@@ -30,13 +30,92 @@ export function PreviewPanel({
     isPanning,
     onZoomIn,
     onZoomOut,
-    onResetView,
+    onFitView,
     onMouseDown,
     onMouseMove,
     onMouseUp,
     onWheel,
 }: PreviewPanelProps) {
     const previewRef = useRef<HTMLDivElement>(null);
+
+    /**
+     * Extract intrinsic dimensions from the SVG string.
+     * Tries width/height attributes first, then falls back to viewBox.
+     */
+    const getSvgDimensions = useCallback((svgStr: string): { w: number; h: number } | null => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgStr, 'image/svg+xml');
+        const svgEl = doc.querySelector('svg');
+        if (!svgEl) return null;
+
+        // Try explicit width/height attributes
+        const w = parseFloat(svgEl.getAttribute('width') || '0');
+        const h = parseFloat(svgEl.getAttribute('height') || '0');
+        if (w > 0 && h > 0) return { w, h };
+
+        // Fallback to viewBox
+        const vb = svgEl.getAttribute('viewBox');
+        if (vb) {
+            const parts = vb.split(/[\s,]+/).map(Number);
+            if (parts.length >= 4 && parts[2] > 0 && parts[3] > 0) {
+                return { w: parts[2], h: parts[3] };
+            }
+        }
+
+        return null;
+    }, []);
+
+    /** Trigger fit-to-view using current container & SVG dimensions */
+    const doFitToView = useCallback(() => {
+        const container = previewRef.current;
+        if (!container || !svg) return;
+        const dims = getSvgDimensions(svg);
+        if (!dims) return;
+        onFitView(container.clientWidth, container.clientHeight, dims.w, dims.h);
+    }, [svg, getSvgDimensions, onFitView]);
+
+    // Track previous SVG dimensions to detect significant changes
+    const prevDimsRef = useRef<{ w: number; h: number } | null>(null);
+    const hasInitialFit = useRef(false);
+
+    // Auto-fit ONLY on first SVG render or when dimensions change significantly
+    // (e.g., template switch). Normal typing/editing does NOT reset the view.
+    useEffect(() => {
+        if (!svg) {
+            // Reset tracking when SVG is cleared
+            hasInitialFit.current = false;
+            prevDimsRef.current = null;
+            return;
+        }
+
+        const dims = getSvgDimensions(svg);
+        if (!dims) return;
+
+        const prev = prevDimsRef.current;
+
+        // First render — always fit
+        if (!hasInitialFit.current) {
+            hasInitialFit.current = true;
+            prevDimsRef.current = dims;
+            const timer = setTimeout(doFitToView, 50);
+            return () => clearTimeout(timer);
+        }
+
+        // Significant dimension change (>20% difference) — auto-fit
+        // This catches template switches and major structural changes
+        if (prev) {
+            const wRatio = Math.abs(dims.w - prev.w) / Math.max(prev.w, 1);
+            const hRatio = Math.abs(dims.h - prev.h) / Math.max(prev.h, 1);
+            if (wRatio > 0.2 || hRatio > 0.2) {
+                prevDimsRef.current = dims;
+                const timer = setTimeout(doFitToView, 50);
+                return () => clearTimeout(timer);
+            }
+        }
+
+        // Update tracked dimensions without triggering fit
+        prevDimsRef.current = dims;
+    }, [svg, getSvgDimensions, doFitToView]);
 
     // Attach wheel handler natively with { passive: false } so preventDefault()
     // actually blocks the browser's default Ctrl+Scroll zoom behavior.
@@ -97,10 +176,10 @@ export function PreviewPanel({
                     </button>
                     <button
                         id="fit-btn"
-                        onClick={onResetView}
+                        onClick={doFitToView}
                         className="p-1.5 rounded-md transition-colors cursor-pointer"
                         style={{ color: 'var(--theme-text-muted)' }}
-                        title="Reset view"
+                        title="Fit diagram to viewport"
                     >
                         <FitIcon />
                     </button>
