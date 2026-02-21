@@ -6,6 +6,7 @@ interface UseD2Result {
     svg: string;
     error: string | null;
     isCompiling: boolean;
+    isWasmReady: boolean;
     compile: (code: string, isDark: boolean, layout?: LayoutEngine) => void;
 }
 
@@ -22,6 +23,7 @@ export function useD2(): UseD2Result {
     const [svg, setSvg] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [isCompiling, setIsCompiling] = useState(false);
+    const [isWasmReady, setIsWasmReady] = useState(false);
     const d2Ref = useRef<D2 | null>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const latestRequestRef = useRef<string>('');
@@ -30,6 +32,7 @@ export function useD2(): UseD2Result {
     useEffect(() => {
         try {
             d2Ref.current = new D2();
+            setIsWasmReady(true);
         } catch (e) {
             console.error('[D2] Failed to initialize:', e);
         }
@@ -101,5 +104,5 @@ export function useD2(): UseD2Result {
         }, DEBOUNCE_MS);
     }, [doCompile]);
 
-    return { svg, error, isCompiling, compile };
+    return { svg, error, isCompiling, isWasmReady, compile };
 }

@@ -1,10 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useDropdown } from '../hooks/useDropdown';
-import { templates, DIAGRAM_TYPE_META, DEFAULT_CODE } from '../data/templates';
+import { templates, DIAGRAM_TYPE_META } from '../data/templates';
 import { downloadSVG, downloadPNG } from '../utils/exportUtils';
 import {
-    FlowIcon, SequenceIcon, ArchitectureIcon,
     DownloadIcon, ChevronIcon, SunIcon, MoonIcon, HelpIcon,
     DIAGRAM_TYPE_ICONS,
 } from '../icons/Icons';
@@ -12,9 +11,9 @@ import type { DiagramType } from '../types';
 
 interface HeaderProps {
     activeType: DiagramType;
-    code: string;
     svg: string;
     isDark: boolean;
+    code: string;
     onTypeChange: (type: DiagramType) => void;
     onCodeChange: (code: string) => void;
     onResetView: () => void;
@@ -23,9 +22,9 @@ interface HeaderProps {
 
 export function Header({
     activeType,
-    code,
     svg,
     isDark,
+    code,
     onTypeChange,
     onCodeChange,
     onResetView,
@@ -35,19 +34,33 @@ export function Header({
     const templateDropdown = useDropdown();
     const exportDropdown = useDropdown();
     const [isExporting, setIsExporting] = useState(false);
+    const [templateSearch, setTemplateSearch] = useState('');
+    const [copyFeedback, setCopyFeedback] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Filter templates by search query
+    const filteredTemplates = templateSearch.trim()
+        ? templates.filter(t =>
+            t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+            t.description.toLowerCase().includes(templateSearch.toLowerCase())
+        )
+        : templates;
 
     const switchDiagramType = useCallback((type: DiagramType) => {
+        if (type === activeType) return;
         const firstTemplate = templates.find(t => t.type === type);
         if (firstTemplate) {
+            if (!confirm('Switching diagram type will replace your current code with a template. Continue?')) return;
             onCodeChange(firstTemplate.code);
         }
         onTypeChange(type);
         onResetView();
-    }, [onCodeChange, onTypeChange, onResetView]);
+    }, [activeType, onCodeChange, onTypeChange, onResetView]);
 
     const loadTemplate = useCallback((templateId: string) => {
         const t = templates.find(t => t.id === templateId);
         if (t) {
+            if (!confirm(`Load template "${t.name}"? This will replace your current code.`)) return;
             onCodeChange(t.code);
             onTypeChange(t.type);
             templateDropdown.close();
@@ -58,7 +71,11 @@ export function Header({
     const handleExportSVG = useCallback(async () => {
         if (!svg) return;
         setIsExporting(true);
-        try { downloadSVG(svg, 'd2-diagram'); } catch { /* noop */ }
+        try {
+            downloadSVG(svg, 'd2-diagram');
+        } catch (err) {
+            alert(`SVG export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
         setIsExporting(false);
         exportDropdown.close();
     }, [svg, exportDropdown]);
@@ -66,10 +83,37 @@ export function Header({
     const handleExportPNG = useCallback(async () => {
         if (!svg) return;
         setIsExporting(true);
-        try { await downloadPNG(svg, 'd2-diagram', 2, isDark); } catch { /* noop */ }
+        try {
+            await downloadPNG(svg, 'd2-diagram', 2, isDark);
+        } catch (err) {
+            alert(`PNG export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
         setIsExporting(false);
         exportDropdown.close();
     }, [svg, isDark, exportDropdown]);
+
+    const handleCopyCode = useCallback(async () => {
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopyFeedback(true);
+            setTimeout(() => setCopyFeedback(false), 2000);
+        } catch { /* noop */ }
+    }, [code]);
+
+    const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const text = ev.target?.result;
+            if (typeof text === 'string') {
+                onCodeChange(text);
+            }
+        };
+        reader.readAsText(file);
+        // Reset input so same file can be re-imported
+        e.target.value = '';
+    }, [onCodeChange]);
 
     return (
         <header className="glass flex items-center justify-between px-5 py-3 relative z-[100] shrink-0">
@@ -121,11 +165,44 @@ export function Header({
             </div>
 
             <div className="flex items-center gap-2.5">
+                {/* Copy Code */}
+                <button
+                    id="copy-code-btn"
+                    onClick={handleCopyCode}
+                    className="p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                    title={copyFeedback ? 'Copied!' : 'Copy D2 code to clipboard'}
+                    style={{ color: copyFeedback ? 'var(--color-accent-emerald)' : 'var(--theme-text-muted)' }}
+                >
+                    {copyFeedback ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
+                    ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                    )}
+                </button>
+
+                {/* Import File */}
+                <button
+                    id="import-file-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                    title="Import .d2 file"
+                    style={{ color: 'var(--theme-text-muted)' }}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+                </button>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".d2,.txt"
+                    onChange={handleImportFile}
+                    className="hidden"
+                />
+
                 {/* Help Button */}
                 <button
                     id="help-btn"
                     onClick={onOpenHelp}
-                    className="p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/10 mr-1"
+                    className="p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                     title="Quick Help & Cheat Sheet"
                     style={{ color: 'var(--theme-text-muted)' }}
                 >
@@ -157,7 +234,7 @@ export function Header({
                 <div className="relative" ref={templateDropdown.ref}>
                     <button
                         id="template-dropdown-btn"
-                        onClick={templateDropdown.toggle}
+                        onClick={() => { templateDropdown.toggle(); setTemplateSearch(''); }}
                         className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                         style={{
                             background: 'var(--theme-template-btn-bg)',
@@ -175,10 +252,24 @@ export function Header({
                         >
                             <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border)' }}>
                                 <p className="text-xs font-semibold" style={{ color: 'var(--theme-text-secondary)' }}>Pre-built Templates</p>
-                                <p className="text-[10px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>Click to load a template into the editor</p>
+                                <input
+                                    type="text"
+                                    placeholder="Search templates..."
+                                    value={templateSearch}
+                                    onChange={e => setTemplateSearch(e.target.value)}
+                                    autoFocus
+                                    className="w-full mt-2 px-2.5 py-1.5 rounded-md text-xs outline-none"
+                                    style={{
+                                        background: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)',
+                                        border: '1px solid var(--theme-border)',
+                                        color: 'var(--theme-text-primary)',
+                                    }}
+                                />
                             </div>
                             <div className="p-2 max-h-72 overflow-y-auto">
-                                {templates.map(t => {
+                                {filteredTemplates.length === 0 ? (
+                                    <p className="text-center text-[10px] py-4" style={{ color: 'var(--theme-text-muted)' }}>No templates match "{templateSearch}"</p>
+                                ) : filteredTemplates.map(t => {
                                     const meta = DIAGRAM_TYPE_META[t.type];
                                     const Icon = DIAGRAM_TYPE_ICONS[t.type];
                                     return (

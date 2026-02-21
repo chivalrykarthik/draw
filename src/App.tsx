@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from './context/ThemeContext';
 import { useD2 } from './hooks/useD2';
 import { usePanZoom } from './hooks/usePanZoom';
@@ -11,26 +11,57 @@ import { Footer } from './components/Footer';
 import { HelpModal } from './components/HelpModal';
 import type { DiagramType, LayoutEngine } from './types';
 
+const CODE_STORAGE_KEY = 'd2-draw-code';
+
+function loadSavedCode(): string {
+  try {
+    const saved = localStorage.getItem(CODE_STORAGE_KEY);
+    if (saved !== null) return saved;
+  } catch { /* noop */ }
+  return DEFAULT_CODE;
+}
+
 export default function App() {
   const { isDark } = useTheme();
 
   // ─── App State ───
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const [code, setCode] = useState(loadSavedCode);
   const [activeType, setActiveType] = useState<DiagramType>('flow');
   const [layoutEngine, setLayoutEngine] = useState<LayoutEngine>('elk');
   const [editorWidth, setEditorWidth] = useState(20);
   const [isHelpOpen, setHelpOpen] = useState(false);
 
   // ─── Hooks ───
-  const { svg, error, isCompiling, compile } = useD2();
+  const { svg, error, isCompiling, isWasmReady, compile } = useD2();
   const panZoom = usePanZoom();
   const { handleMouseDown: handleResizerMouseDown } = useResizer(editorWidth, setEditorWidth);
-  const resizerRef = useRef<HTMLDivElement>(null);
+
+  // Persist code to localStorage on change
+  const handleCodeChange = useCallback((newCode: string) => {
+    setCode(newCode);
+    try { localStorage.setItem(CODE_STORAGE_KEY, newCode); } catch { /* noop */ }
+  }, []);
 
   // Compile on code, theme, or layout change
   useEffect(() => {
     compile(code, isDark, layoutEngine);
   }, [code, isDark, layoutEngine, compile]);
+
+  // ─── Keyboard Shortcuts ───
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      // Ctrl+S / Cmd+S — prevent browser save dialog
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+      }
+      // Escape — close help modal
+      if (e.key === 'Escape') {
+        setHelpOpen(false);
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--theme-bg)' }}>
@@ -40,7 +71,7 @@ export default function App() {
         svg={svg}
         isDark={isDark}
         onTypeChange={setActiveType}
-        onCodeChange={setCode}
+        onCodeChange={handleCodeChange}
         onResetView={panZoom.resetView}
         onOpenHelp={() => setHelpOpen(true)}
       />
@@ -54,13 +85,12 @@ export default function App() {
             isCompiling={isCompiling}
             error={error}
             svg={svg}
-            onCodeChange={setCode}
+            onCodeChange={handleCodeChange}
           />
         </div>
 
         {/* Resizer */}
         <div
-          ref={resizerRef}
           className="resizer w-1 shrink-0"
           onMouseDown={handleResizerMouseDown}
         />
@@ -70,6 +100,7 @@ export default function App() {
           svg={svg}
           isDark={isDark}
           isCompiling={isCompiling}
+          isWasmReady={isWasmReady}
           error={error}
           zoom={panZoom.zoom}
           pan={panZoom.pan}

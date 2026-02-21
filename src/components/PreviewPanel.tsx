@@ -5,6 +5,7 @@ interface PreviewPanelProps {
     svg: string;
     isDark: boolean;
     isCompiling: boolean;
+    isWasmReady: boolean;
     error: string | null;
     zoom: number;
     pan: { x: number; y: number };
@@ -22,6 +23,7 @@ export function PreviewPanel({
     svg,
     isDark,
     isCompiling,
+    isWasmReady,
     error,
     zoom,
     pan,
@@ -108,7 +110,7 @@ export function PreviewPanel({
             {/* SVG Preview */}
             <div
                 ref={previewRef}
-                className="flex-1 min-h-0 overflow-auto svg-preview-container relative"
+                className="flex-1 min-h-0 overflow-hidden svg-preview-container relative"
                 onMouseDown={onMouseDown}
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
@@ -126,6 +128,16 @@ export function PreviewPanel({
                         }}
                     >
                         <div dangerouslySetInnerHTML={{ __html: svg }} />
+                    </div>
+                ) : !isWasmReady ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-4 animate-fade-in">
+                        <div className="w-12 h-12 border-2 border-brand-400 border-t-transparent rounded-full animate-spin-slow" />
+                        <div className="text-center">
+                            <p className="text-sm font-medium" style={{ color: 'var(--theme-text-muted)' }}>Initializing D2 Engine...</p>
+                            <p className="text-xs mt-1" style={{ color: 'var(--theme-text-dimmed)' }}>
+                                Loading WASM module
+                            </p>
+                        </div>
                     </div>
                 ) : !error && !isCompiling ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4 animate-fade-in">

@@ -1,73 +1,144 @@
-# React + TypeScript + Vite
+# D2 Draw — Professional Diagramming Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A **100% client-side** diagramming application powered by [D2](https://d2lang.com/) and WebAssembly. Write D2 code and instantly see your diagrams render — no backend, no data leaves your browser.
 
-Currently, two official plugins are available:
+**Live Demo:** [https://chivalrykarthik.github.io/draw/](https://chivalrykarthik.github.io/draw/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Real-Time Preview** — Diagrams render as you type with debounced WASM compilation
+- **Monaco Editor** — Full code editor with line numbers, bracket matching, and word wrap
+- **15 Built-in Templates** — Flow diagrams, sequence diagrams, architecture diagrams, CI/CD pipelines, Kubernetes clusters, state machines, and more
+- **Dark & Light Themes** — Toggle between themes; auto-detects system preference and persists choice
+- **Export** — Download diagrams as SVG (scalable vector) or PNG (high-res 2x)
+- **Pan & Zoom** — Drag to pan, scroll to zoom, or use toolbar controls
+- **Layout Engines** — Switch between ELK and Dagre layout algorithms
+- **Code Persistence** — Your code is saved to localStorage automatically and survives page refresh
+- **Quick Help** — Built-in D2 syntax reference, shape gallery, styling guide, and cheat sheets
+- **Resizable Panels** — Drag the divider to adjust editor vs preview proportions
+- **Keyboard Shortcuts** — `Ctrl+S` (prevents browser save), `Esc` (close modals)
+- **Zero Server Dependency** — Everything runs in WebAssembly; works offline after initial load
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- [Node.js](https://nodejs.org/) 18+
+- npm
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Install & Run
+
+```bash
+git clone https://github.com/chivalrykarthik/draw.git
+cd draw
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:3000/draw/](http://localhost:3000/draw/) in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Build for Production
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
+
+Output is in `dist/`, ready to deploy as static files.
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| UI Framework | React 19 + TypeScript |
+| Bundler | Vite 7 |
+| Styling | Tailwind CSS 4 + CSS Custom Properties |
+| Code Editor | Monaco Editor (`@monaco-editor/react`) |
+| Diagram Engine | D2 via `@terrastruct/d2` (WASM) |
+| Deployment | GitHub Pages (via GitHub Actions) |
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── App.tsx                    # Root component, state orchestration
+├── main.tsx                   # Entry point, providers
+├── index.css                  # Theme tokens, animations, utilities
+├── components/
+│   ├── Header.tsx             # Tabs, templates, export, theme toggle
+│   ├── EditorPanel.tsx        # Monaco editor + error display
+│   ├── PreviewPanel.tsx       # SVG preview + pan/zoom + WASM loading
+│   ├── Footer.tsx             # Layout engine toggle, status bar
+│   ├── HelpModal.tsx          # Reference docs & cheat sheets
+│   └── ErrorBoundary.tsx      # Crash recovery UI
+├── hooks/
+│   ├── useD2.ts               # WASM init, debounced compile, dedup
+│   ├── usePanZoom.ts          # Pan/zoom with drag threshold
+│   ├── useResizer.ts          # Draggable panel divider
+│   └── useDropdown.ts         # Toggle + outside click dismiss
+├── context/
+│   └── ThemeContext.tsx        # Dark/light with localStorage sync
+├── data/
+│   ├── templates.ts           # 15 D2 diagram templates
+│   └── helpData.ts            # Reference docs content
+├── icons/
+│   └── Icons.tsx              # SVG icon components
+├── types/
+│   └── index.ts               # TypeScript type definitions
+└── utils/
+    └── exportUtils.ts         # SVG/PNG download pipeline
+```
+
+---
+
+## 📋 Available Templates
+
+| Template | Type | Description |
+|----------|------|-------------|
+| Shapes & Styles | Flow | All D2 shapes and styling options |
+| API Architecture | Architecture | Client → API → DB with styling |
+| Microservices | Architecture | API gateway, services, data stores |
+| Auth Flow | Sequence | OAuth 2.0 authentication sequence |
+| Logic Flowchart | Flow | Decision-tree with error handling |
+| AWS Architecture | Architecture | VPC, subnets, Lambda, DynamoDB |
+| Database ERD | Flow | Entity relationships with SQL tables |
+| Git Branching | Flow | GitFlow branching strategy |
+| CI/CD Pipeline | Flow | Build → test → deploy pipeline |
+| Kubernetes | Architecture | K8s cluster with pods & services |
+| Event-Driven (CQRS) | Architecture | Command/query separation pattern |
+| Order State Machine | Flow | Order lifecycle with state transitions |
+| Network Topology | Architecture | Enterprise network with DMZ & zones |
+| REST API Lifecycle | Sequence | Request lifecycle through middleware |
+| Incident Response | Flow | Production incident workflow |
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+S` / `Cmd+S` | Prevent browser save (code auto-saves to localStorage) |
+| `Escape` | Close help modal & dropdowns |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
