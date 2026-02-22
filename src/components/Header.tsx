@@ -3,6 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useDropdown } from '../hooks/useDropdown';
 import { templates, DIAGRAM_TYPE_META } from '../data/templates';
 import { downloadSVG, downloadPNG } from '../utils/exportUtils';
+import { downloadMermaid, downloadPlantUML } from '../utils/d2Converter';
 import {
     DownloadIcon, ChevronIcon, SunIcon, MoonIcon, HelpIcon,
     DIAGRAM_TYPE_ICONS,
@@ -91,6 +92,26 @@ export function Header({
         setIsExporting(false);
         exportDropdown.close();
     }, [svg, isDark, exportDropdown]);
+
+    const handleExportMermaid = useCallback(() => {
+        if (!code) return;
+        try {
+            downloadMermaid(code, 'd2-diagram');
+        } catch (err) {
+            alert(`Mermaid export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+        exportDropdown.close();
+    }, [code, exportDropdown]);
+
+    const handleExportPlantUML = useCallback(() => {
+        if (!code) return;
+        try {
+            downloadPlantUML(code, 'd2-diagram');
+        } catch (err) {
+            alert(`PlantUML export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+        exportDropdown.close();
+    }, [code, exportDropdown]);
 
     const handleCopyCode = useCallback(async () => {
         try {
@@ -322,6 +343,7 @@ export function Header({
                             style={{ backgroundColor: isDark ? '#1e293b' : '#ffffff', opacity: 1, backdropFilter: 'none', border: '1px solid var(--theme-border)', boxShadow: '0 25px 50px -12px var(--theme-shadow-color)' }}
                         >
                             <div className="p-2">
+                                <p className="px-3 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Image Formats</p>
                                 <button
                                     id="export-svg-btn"
                                     onClick={handleExportSVG}
@@ -355,6 +377,47 @@ export function Header({
                                         <div>
                                             <p className="text-xs font-medium group-hover:text-brand-500" style={{ color: 'var(--theme-text-secondary)' }}>Export as PNG</p>
                                             <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>High-res (2x scale)</p>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                {/* Divider */}
+                                <div className="my-1.5 mx-3" style={{ borderTop: '1px solid var(--theme-border)' }} />
+
+                                <p className="px-3 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Code Formats</p>
+                                <button
+                                    id="export-mermaid-btn"
+                                    onClick={handleExportMermaid}
+                                    className="w-full text-left px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer"
+                                    style={{ background: 'transparent' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: isDark ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.08)' }}>
+                                            <span className="text-[8px] font-bold" style={{ color: '#a855f7' }}>MMD</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium group-hover:text-brand-500" style={{ color: 'var(--theme-text-secondary)' }}>Export as Mermaid</p>
+                                            <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Flowchart (.mmd)</p>
+                                        </div>
+                                    </div>
+                                </button>
+                                <button
+                                    id="export-plantuml-btn"
+                                    onClick={handleExportPlantUML}
+                                    className="w-full text-left px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer"
+                                    style={{ background: 'transparent' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: isDark ? 'rgba(244, 114, 182, 0.1)' : 'rgba(244, 114, 182, 0.08)' }}>
+                                            <span className="text-[8px] font-bold" style={{ color: '#f472b6' }}>UML</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium group-hover:text-brand-500" style={{ color: 'var(--theme-text-secondary)' }}>Export as PlantUML</p>
+                                            <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Component diagram (.puml)</p>
                                         </div>
                                     </div>
                                 </button>
