@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useDropdown } from '../hooks/useDropdown';
 import { templates, DIAGRAM_TYPE_META } from '../data/templates';
 import { downloadSVG, downloadPNG } from '../utils/exportUtils';
-import { downloadMermaid, downloadPlantUML } from '../utils/d2Converter';
+import { downloadMermaid, downloadPlantUML, d2ToMermaid, d2ToPlantUML } from '../utils/d2Converter';
 import {
     DownloadIcon, ChevronIcon, SunIcon, MoonIcon, HelpIcon,
     DIAGRAM_TYPE_ICONS,
@@ -37,6 +37,8 @@ export function Header({
     const [isExporting, setIsExporting] = useState(false);
     const [templateSearch, setTemplateSearch] = useState('');
     const [copyFeedback, setCopyFeedback] = useState(false);
+    const [copyMermaidFeedback, setCopyMermaidFeedback] = useState(false);
+    const [copyPlantUMLFeedback, setCopyPlantUMLFeedback] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Filter templates by search query
@@ -112,6 +114,26 @@ export function Header({
         }
         exportDropdown.close();
     }, [code, exportDropdown]);
+
+    const handleCopyMermaid = useCallback(async () => {
+        if (!code) return;
+        try {
+            const mermaid = d2ToMermaid(code);
+            await navigator.clipboard.writeText(mermaid);
+            setCopyMermaidFeedback(true);
+            setTimeout(() => setCopyMermaidFeedback(false), 2000);
+        } catch { /* noop */ }
+    }, [code]);
+
+    const handleCopyPlantUML = useCallback(async () => {
+        if (!code) return;
+        try {
+            const puml = d2ToPlantUML(code);
+            await navigator.clipboard.writeText(puml);
+            setCopyPlantUMLFeedback(true);
+            setTimeout(() => setCopyPlantUMLFeedback(false), 2000);
+        } catch { /* noop */ }
+    }, [code]);
 
     const handleCopyCode = useCallback(async () => {
         try {
@@ -385,42 +407,84 @@ export function Header({
                                 <div className="my-1.5 mx-3" style={{ borderTop: '1px solid var(--theme-border)' }} />
 
                                 <p className="px-3 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Code Formats</p>
-                                <button
-                                    id="export-mermaid-btn"
-                                    onClick={handleExportMermaid}
-                                    className="w-full text-left px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer"
-                                    style={{ background: 'transparent' }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: isDark ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.08)' }}>
-                                            <span className="text-[8px] font-bold" style={{ color: '#a855f7' }}>MMD</span>
+
+                                {/* Mermaid row — download + copy */}
+                                <div className="flex items-center gap-1 px-1">
+                                    <button
+                                        id="export-mermaid-btn"
+                                        onClick={handleExportMermaid}
+                                        className="flex-1 text-left px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer"
+                                        style={{ background: 'transparent' }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: isDark ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.08)' }}>
+                                                <span className="text-[8px] font-bold" style={{ color: '#a855f7' }}>MMD</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-medium group-hover:text-brand-500" style={{ color: 'var(--theme-text-secondary)' }}>Mermaid</p>
+                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Download .mmd</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-medium group-hover:text-brand-500" style={{ color: 'var(--theme-text-secondary)' }}>Export as Mermaid</p>
-                                            <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Flowchart (.mmd)</p>
+                                    </button>
+                                    <button
+                                        id="copy-mermaid-btn"
+                                        onClick={handleCopyMermaid}
+                                        className="p-2 rounded-lg transition-all duration-150 cursor-pointer shrink-0"
+                                        style={{ background: 'transparent' }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                        title="Copy Mermaid to clipboard"
+                                    >
+                                        {copyMermaidFeedback ? (
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                        ) : (
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--theme-text-muted)' }}>
+                                                <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* PlantUML row — download + copy */}
+                                <div className="flex items-center gap-1 px-1">
+                                    <button
+                                        id="export-plantuml-btn"
+                                        onClick={handleExportPlantUML}
+                                        className="flex-1 text-left px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer"
+                                        style={{ background: 'transparent' }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: isDark ? 'rgba(244, 114, 182, 0.1)' : 'rgba(244, 114, 182, 0.08)' }}>
+                                                <span className="text-[8px] font-bold" style={{ color: '#f472b6' }}>UML</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-medium group-hover:text-brand-500" style={{ color: 'var(--theme-text-secondary)' }}>PlantUML</p>
+                                                <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Download .puml</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                                <button
-                                    id="export-plantuml-btn"
-                                    onClick={handleExportPlantUML}
-                                    className="w-full text-left px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer"
-                                    style={{ background: 'transparent' }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: isDark ? 'rgba(244, 114, 182, 0.1)' : 'rgba(244, 114, 182, 0.08)' }}>
-                                            <span className="text-[8px] font-bold" style={{ color: '#f472b6' }}>UML</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-medium group-hover:text-brand-500" style={{ color: 'var(--theme-text-secondary)' }}>Export as PlantUML</p>
-                                            <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Component diagram (.puml)</p>
-                                        </div>
-                                    </div>
-                                </button>
+                                    </button>
+                                    <button
+                                        id="copy-plantuml-btn"
+                                        onClick={handleCopyPlantUML}
+                                        className="p-2 rounded-lg transition-all duration-150 cursor-pointer shrink-0"
+                                        style={{ background: 'transparent' }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(79, 70, 229, 0.1)' : 'rgba(79, 70, 229, 0.06)')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                        title="Copy PlantUML to clipboard"
+                                    >
+                                        {copyPlantUMLFeedback ? (
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                        ) : (
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--theme-text-muted)' }}>
+                                                <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
