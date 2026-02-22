@@ -18,7 +18,6 @@ interface UsePanZoomReturn extends PanZoomState {
     handleWheel: (e: React.WheelEvent) => void;
 }
 const ZOOM_FACTOR_BUTTON = 1.25;   // 25% per button click
-const ZOOM_FACTOR_WHEEL = 1.08;    // 8% per scroll tick — smooth and granular
 const ZOOM_MIN = 0.05;
 const ZOOM_MAX = 8;
 const PAN_DRAG_THRESHOLD = 4; // px — must drag this far before panning activates

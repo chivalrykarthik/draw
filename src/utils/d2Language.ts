@@ -6,7 +6,7 @@ import type { Monaco } from '@monaco-editor/react';
  */
 export function registerD2Language(monaco: Monaco) {
     // Don't re-register if already registered
-    if (monaco.languages.getLanguages().some(l => l.id === 'd2')) return;
+    if (monaco.languages.getLanguages().some((l: { id: string }) => l.id === 'd2')) return;
 
     monaco.languages.register({ id: 'd2' });
 
@@ -152,7 +152,7 @@ export function registerD2Language(monaco: Monaco) {
 
     // Auto-completion for D2 keywords
     monaco.languages.registerCompletionItemProvider('d2', {
-        provideCompletionItems: (_model, position) => {
+        provideCompletionItems: (_model: unknown, position: { lineNumber: number; column: number }) => {
             const range = {
                 startLineNumber: position.lineNumber,
                 endLineNumber: position.lineNumber,
